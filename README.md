@@ -1,7 +1,8 @@
 # pySweeper
  minesweeper clone for practice
 
-
+v0.5:
+	Now have the ability to place down bomb flags (and removing them) by adding an optional third argument (b for bomb flag, r for remove flag).  To do: Add a GUI. Clean up debug messages inside of code; more comments.
 v0.4:
 	Properly autocascades 0 bomb locations (if a spot has 0 bombs around it, it "clicks" all the surrounding locations.  There are also a win and lose condition now and the map is revealed upon death/winning.  Added a clear screen feature to make it look a little prettier.
 	Todo: ability to flag locations by typing in a third input as a modifier.  Add a GUI. Clean up debug messages inside of code; more comments.

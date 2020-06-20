@@ -218,7 +218,7 @@ playingField = []
 # square = 0 = bomb (0 = safe, 1 = bomb), 1= top left, 2= top middle, 3 = top right, 4 = middle left,
 #          5 = middle right, 6 = bottom left, 7 = bottom middle, 8 = bottom right,
 #          9 = status (0 = unrevealed, 1 = revealed), 10 = number of bombs surrounding spot, 11=clear processed
-square = [0,0,0,0,0,0,0,0,0,0,0,0]
+square = [0,0,0,0,0,0,0,0,0,0,0,0,0]
 mineRow = []
 
 for i in range(columns):
@@ -354,7 +354,7 @@ while True:
     for i in range (len(playingField[0])):
         print(f"{spacer}{i+1:2}",end="")
     print("")
-    bombSymbol = " #"
+    bombFlag = " B"
     leftIndex = 1
     firstTime = True
 
@@ -374,6 +374,9 @@ while True:
                 print(f" {playingField[r][c][10]:2} ",end="")
                 continue
             else:
+                if playingField[r][c][12]==1:
+                    print(f" {bombFlag:2} ",end="")
+                else:
                     print(f" {unrevealedString:2} ",end="")
         
         print("")
@@ -391,12 +394,31 @@ while True:
         input("Hit enter to quit")
         break
 
-    getInput = input("Type in your location doing row then column. For example, you can type 3 4. ")
+    flagAttempt = False
+    flagRemoveAttempt = False
+    getInput = input("""Type in your location doing row then column. For example, you can type 3 4.
+Type b after the location if you want to put a flag as a possible bomb location, for example 3 4 b
+Bomb flags can be removed by typing the location of a bomb flag and typing c after it.""")
+
     
     try:
         myList = getInput.split(" ")
         r = int(myList[0])-1
         c = int(myList[1])-1
+        try:
+            b = myList[2]
+            if b == "b" or b == "B":
+                flagAttempt = True
+                myList[2] = False
+            elif b == "c" or b == "C":
+                flagRemoveAttempt = True
+                myList[2] = False
+            else:
+                print("Your third value must be either b for bomb or c for clear")
+                input("Hit enter to continue")
+                continue
+        except:
+            pass
     except:
         print("bad input")
         input("Press enter to continue")
@@ -405,7 +427,30 @@ while True:
     if r < 0 or r > rows-1 or c < 0 or c > columns -1:
         print("Out of bounds")
         continue
-    
+
+    if flagAttempt == True:
+        #if you haven't revealed it yet
+        if playingField[r][c][9] != 1:
+            #place a bomb flag to note there may be a bomb
+            playingField[r][c][12] = 1
+            print("Placed a flag down.  Marked potential bomb with a B.  Remove the flag by typing the location followed by r")
+            input("Hit enter to continue")
+            continue
+        else:
+            print("You can't place a flag in a revealed location.")
+            input("Hit enter to continue")
+            continue
+    if flagRemoveAttempt == True:
+        if playingField[r][c][12] == 1:
+            #remove bomb flag
+            playingField[r][c][12] = 0
+            print("Removed the bomb marker")
+            input("Hit enter to continue")
+            continue
+        else:
+            print("There's no flag there.")
+            input("Hit enter to continue")
+            continue
     if playingField[r][c][0] == 1:
         print("You dead!")
         input("Press enter to continue")
@@ -417,8 +462,6 @@ while True:
             continue
         else:
             playingField[r][c][9]=1
-
-
 
     revealer(playingField)
 
