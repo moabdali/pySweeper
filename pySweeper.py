@@ -1,5 +1,6 @@
 import random
 import copy as cp
+import string
 
 #columns = input("Columns? ")
 #rows = input("Rows? ")
@@ -77,7 +78,7 @@ for r in range(rows):
         print(f"searching for bombs around ({r},{c})")
         #try top left
         try:
-            if playingField[r-1][c-1][0] == 1:
+            if playingField[r-1][c-1][0] == 1 and r-1 >= 0 and c-1 >= 0:
                 print("I found a bomb top left")
                 surrBombs += 1
         except:
@@ -85,7 +86,7 @@ for r in range(rows):
             
         #try top middle:
         try:
-            if playingField[r-1][c][0] == 1:
+            if playingField[r-1][c][0] == 1 and r-1>=0:
                 print("I found a bomb above")
                 surrBombs += 1
         except:
@@ -93,7 +94,7 @@ for r in range(rows):
             
         #try top right
         try:
-            if playingField[r-1][c+1][0] == 1:
+            if playingField[r-1][c+1][0] == 1 and r-1 >=0:
                 print("I found a bomb top right")
                 surrBombs += 1
         except:
@@ -101,7 +102,7 @@ for r in range(rows):
 
         #try left
         try:
-            if playingField[r][c-1][0] == 1:
+            if playingField[r][c-1][0] == 1 and c-1 >= 0:
                 print("I found a bomb left")
                 surrBombs += 1
         except:
@@ -119,7 +120,7 @@ for r in range(rows):
 
         #try bottom left
         try:
-            if playingField[r+1][c-1][0] == 1:
+            if playingField[r+1][c-1][0] == 1 and c-1 >= 0:
                 print("I found a bomb bottom left")
                 surrBombs += 1
         except:
@@ -156,3 +157,40 @@ for r in range(rows):
             continue
         print(f" {playingField[r][c][10]} ",end="")
     print("")
+
+
+# square = 0 = bomb (0 = safe, 1 = bomb), 1= top left, 2= top middle, 3 = top right, 4 = middle left,
+#          5 = middle right, 6 = bottom left, 7 = bottom middle, 8 = bottom right,
+#          9 = status (0 = unrevealed, 1 = revealed), 10 = number of bombs surrounding spot
+
+dead = False
+while True:
+    if dead == True:
+        quit()
+        
+    getInput = input("Type in your location doing row column (top left is 1,1).  For example, you can type 3 4")
+    myList = getInput.split(" ")
+    r = int(myList[0])-1
+    c = int(myList[1])-1
+    if playingField[r][c][0] == 1:
+        print("You dead!")
+        dead = True
+    else:
+        if playingField[r][c][9]==1:
+            print("You already did this.")
+            continue
+        else:
+            playingField[r][c][9]=1
+
+    for r in range(rows):
+   
+        for c in range(columns):
+            if playingField[r][c][9] == 1:
+                print( f" {playingField[r][c][10]} ",end="")
+                continue
+            else:
+                print(f" ? ",end="")
+        print("")
+
+
+    
