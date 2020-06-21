@@ -422,23 +422,29 @@ while True:
     # if the user asks for help, explain the game
     if getInput == "?":
         print(
-            """Enter a row followed by a column, then hit enter to set up a mine detector in that location.
-              For example, 3 4 will set up a detector on the third row from the top, fourth column from the left.
-              If there is a mine on that spot, you will instantly explode.  If there is no mine there, you will
-              be told how many mines touch that square in any 8 of the surrounding spots touching that box. For
-              example, revealing an 8 means there's a bomb on all 8 surrounding squares.  A 3 would mean there's
-              three mines in total.
+            """            Enter a row followed by a column, then hit enter to set up a mine
+            detector in that location. For example, 3 4 will set up a detector
+            on the third row from the top, fourth column from the left. If there
+            is a mine on that spot, you will instantly explode.  If there is no
+            mine there, you will be told how many mines touch that square in any
+            8 of the surrounding spots touching that box. For example, revealing
+            an 8 means there's a bomb on all 8 surrounding squares.  A 3 would
+            mean there's three mines in total.
 
-              You also have the option to place down lightweight flags that help you keep track of where you
-              think a mine might be.  These flags serve only as a visual tool for yourself; they have no effect
-              on anything else (and will automatically be removed if the game determines that the spot was supposed
-              to be revealed.  You can add a flag by adding the letter b after your coordinates to designate you
-              want to place a bomb flag there.  For example, to set a bomb flag on the top left, just type 1 1 b
-              and then hit enter.  To remove a flag that you placed down, type the location and then follow it with
-              an c to show you want to remove it.  For example, 1 1 c
+            You also have the option to place down lightweight flags that help
+            you keep track of where you think a mine might be.  These flags
+            serve only as a visual tool for yourself; they have no effect
+            on anything else (and will automatically be removed if the game
+            determines that the spot was supposed to be revealed.  You can add a
+            flag by adding the letter b after your coordinates to designate you
+            want to place a bomb flag there.  For example, to set a bomb flag on
+            the top left, just type 1 1 b and then hit enter.  To remove a flag
+            that you placed down, type the location and then follow it with
+            a c to show you want to remove it.  For example, 1 1 c
 
-              Finally, you can type the word STATS and then hit enter to see how many bombs there are, how many spaces
-              you've safely uncovered, and how many more spaces you need to uncover to win."""
+            Finally, you can type the word STATS and then hit enter to see how
+            many bombs there are, how many spaces you've safely uncovered, and
+            how many more spaces you need to uncover to win."""
         )
         input("Hit enter to continue")
         clear()
