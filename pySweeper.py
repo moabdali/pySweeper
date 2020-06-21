@@ -4,226 +4,252 @@ import string
 from os import system, name
 
 
-
+# for clearing the screen between moves and messages
 def clear():
-    if name == 'nt':
-        _ = system('cls')
+    if name == "nt":
+        _ = system("cls")
     else:
-        _ = system('clear')
+        _ = system("clear")
 
-# the square can be changed to a class or dictionary in the future.  The list items below hold the
-# corresponding data
-# square = 0 = bomb (0 = safe, 1 = bomb), 1= top left, 2= top middle, 3 = top right, 4 = middle left,
-#          5 = middle right, 6 = bottom left, 7 = bottom middle, 8 = bottom right,
-#          9 = status (0 = unrevealed, 1 = revealed), 10 = number of bombs surrounding spot, 11=clear processed
 
+# reveal the entire map (for when you win/lose - to show that the map wasn't cheating, but also useful for showing the map for debug purposes)
 def showBombMap(playingField):
     spacer = "  "
     print("  ", end="")
-    for i in range (len(playingField[0])):
-        print(f"{spacer}{i+1:2}",end="")
+    for i in range(len(playingField[0])):
+        print(f"{spacer}{i+1:2}", end="")
     print("")
     bombSymbol = " #"
     leftIndex = 1
-    firstTime = True
     for r in range(rows):
-        
-        print(f"{leftIndex:2}:",end="")
-        leftIndex+=1
-        
-        for c in range(columns):
-            
-            if playingField[r][c][0] == 1:
-                print( f" {bombSymbol:2} ",end="")
-                continue
-            print(f" {playingField[r][c][10]:2} ",end="")
-        
-        print("")
+        print(f"{leftIndex:2}:", end="")
+        leftIndex += 1
 
+        for c in range(columns):
+
+            if playingField[r][c][bombExists] == 1:
+                print(f" {bombSymbol:2} ", end="")
+                continue
+            print(f" {playingField[r][c][surroundingBombs]:2} ", end="")
+        print("")
     print("")
 
 
+# cascade function - if you reveal a square with 0, that means all surrounding locations are safe, so automatically show them.  If any of THOSE are zero, keep repeating until
+# no further zero squares are encountered
 def revealer(playingField):
-    
     change = True
-    #technically the first change is a lie, but whatever
+    # technically the first change is a lie, but whatever
     while change:
         rows = len(playingField)
         columns = len(playingField[0])
         change = False
         for r in range(rows):
-            
+
             for c in range(columns):
-                
-                #print(f"Processing ({r},{c})")
-                #if the spot is processed already, check another spot
-                
-                if playingField[r][c][11] == 1:
+
+                # if the spot is processed already, check another spot
+
+                if playingField[r][c][squareProcessed] == 1:
                     continue
-                
-                #if a spot has been revealed and has zero bombs (and hasn't been fully processed yet):
-                if playingField[r][c][9] == 1 and playingField[r][c][10]==0:
-                    #print("marking as processed upper function")
-                    playingField[r][c][11] = 1 #mark as processed
-                    
-                    #try top left
+
+                # if a spot has been revealed and has zero bombs (and hasn't been fully processed yet):
+                if (
+                    playingField[r][c][bombStatus] == 1
+                    and playingField[r][c][surroundingBombs] == 0
+                ):
+                    # print("marking as processed upper function")
+                    playingField[r][c][squareProcessed] = 1  # mark as processed
+
+                    # try top left
                     try:
-                        #if the top left location has no bombs surrounding it and is a legal place to check and the location isn't processed yet
-                        if playingField[r-1][c-1][10] == 0 and r-1 >= 0 and c-1 >= 0 and playingField[r-1][c-1][11] != 1:
-                            #mark the location as revealed
-                            playingField[r-1][c-1][9] = 1
-                            #revealedSquares += 1
+                        # if the top left location has no bombs surrounding it and is a legal place to check and the location isn't processed yet
+                        if (
+                            playingField[r - 1][c - 1][surroundingBombs] == 0
+                            and r - 1 >= 0
+                            and c - 1 >= 0
+                            and playingField[r - 1][c - 1][squareProcessed] != 1
+                        ):
+                            # mark the location as revealed
+                            playingField[r - 1][c - 1][bombStatus] = 1
+                            # revealedSquares += 1
                             change = True
-                            #print("Change in top left")
-                            
-                        #if it's not a 0 space, but it's also not a bomb:
-                        elif playingField[r-1][c-1][0] == 0 and r-1 >= 0 and c-1 >= 0:
-                            #reveal it
-                            playingField[r-1][c-1][9] = 1
-                            #revealedSquares += 1
-                            #mark it as processed
-                            playingField[r-1][c-1][11] = 1
-                            #print("revealing top left")
-                            
-                    except:
-                        pass
-                        
-                    #try top middle:
-                    try:
-                        if playingField[r-1][c][10] == 0 and r-1>=0 and playingField[r-1][c][11] != 1:
-                            playingField[r-1][c][9] = 1
-                            #revealedSquares += 1
-                            change = True
-                        elif playingField[r-1][c][0] == 0 and r-1>=0:
-                            #reveal it
-                            playingField[r-1][c][9] = 1
-                            #revealedSquares += 1
-                            #mark it as processed
-                            playingField[r-1][c][11] = 1
-                            
-                    except:
-                        pass
-                        
-                    #try top right
-                    try:
-                        if playingField[r-1][c+1][10] == 0 and r-1 >=0 and playingField[r-1][c+1][11] != 1:
-                            playingField[r-1][c+1][9]=1
-                            #revealedSquares += 1
-                            change = True
-                        elif playingField[r-1][c+1][0] == 0 and r-1 >=0:
-                            #reveal it
-                            playingField[r-1][c+1][9] = 1
-                            #revealedSquares += 1
-                            #mark it as processed
-                            playingField[r-1][c+1][11] = 1
+                            # print("Change in top left")
+
+                        # if it's not a 0 space, but it's also not a bomb:
+                        elif (
+                            playingField[r - 1][c - 1][bombExists] == 0
+                            and r - 1 >= 0
+                            and c - 1 >= 0
+                        ):
+                            # reveal it
+                            playingField[r - 1][c - 1][bombStatus] = 1
+                            # revealedSquares += 1
+                            # mark it as processed
+                            playingField[r - 1][c - 1][squareProcessed] = 1
+                            # print("revealing top left")
+
                     except:
                         pass
 
-                    #try left
+                    # try top middle:
                     try:
-                        
-                        if playingField[r][c-1][10] == 0 and c-1 >= 0 and playingField[r][c-1][11] != 1:
-                            playingField[r][c-1][9] = 1
-                            #revealedSquares += 1
+                        if (
+                            playingField[r - 1][c][surroundingBombs] == 0
+                            and r - 1 >= 0
+                            and playingField[r - 1][c][squareProcessed] != 1
+                        ):
+                            playingField[r - 1][c][bombStatus] = 1
+                            # revealedSquares += 1
                             change = True
-                        elif playingField[r][c-1][0] == 0 and c-1 >= 0:
-                            #reveal it
-                            playingField[r][c-1][9] = 1
-                            #revealedSquares += 1
-                            #mark it as processed
-                            playingField[r][c-1][11] = 1
+                        elif playingField[r - 1][c][bombExists] == 0 and r - 1 >= 0:
+                            # reveal it
+                            playingField[r - 1][c][bombStatus] = 1
+                            # revealedSquares += 1
+                            # mark it as processed
+                            playingField[r - 1][c][squareProcessed] = 1
+
                     except:
                         pass
 
-                    #try right
+                    # try top right
                     try:
-                        if playingField[r][c+1][10] == 0 and playingField[r][c+1][11] != 1:
-                            playingField[r][c+1][9] = 1
-                            #revealedSquares += 1
+                        if (
+                            playingField[r - 1][c + 1][surroundingBombs] == 0
+                            and r - 1 >= 0
+                            and playingField[r - 1][c + 1][squareProcessed] != 1
+                        ):
+                            playingField[r - 1][c + 1][bombStatus] = 1
+                            # revealedSquares += 1
                             change = True
-                        elif playingField[r][c+1][0] == 0:
-                            #reveal it
-                            playingField[r][c+1][9] = 1
-                            #revealedSquares += 1
-                            #mark it as processed
-                            playingField[r][c+1][11] = 1
+                        elif playingField[r - 1][c + 1][bombExists] == 0 and r - 1 >= 0:
+                            # reveal it
+                            playingField[r - 1][c + 1][bombStatus] = 1
+                            # revealedSquares += 1
+                            # mark it as processed
+                            playingField[r - 1][c + 1][squareProcessed] = 1
+                    except:
+                        pass
+
+                    # try left
+                    try:
+
+                        if (
+                            playingField[r][c - 1][surroundingBombs] == 0
+                            and c - 1 >= 0
+                            and playingField[r][c - 1][squareProcessed] != 1
+                        ):
+                            playingField[r][c - 1][bombStatus] = 1
+                            # revealedSquares += 1
+                            change = True
+                        elif playingField[r][c - 1][bombExists] == 0 and c - 1 >= 0:
+                            # reveal it
+                            playingField[r][c - 1][bombStatus] = 1
+                            # revealedSquares += 1
+                            # mark it as processed
+                            playingField[r][c - 1][squareProcessed] = 1
+                    except:
+                        pass
+
+                    # try right
+                    try:
+                        if (
+                            playingField[r][c + 1][surroundingBombs] == 0
+                            and playingField[r][c + 1][squareProcessed] != 1
+                        ):
+                            playingField[r][c + 1][bombStatus] = 1
+                            # revealedSquares += 1
+                            change = True
+                        elif playingField[r][c + 1][bombExists] == 0:
+                            # reveal it
+                            playingField[r][c + 1][bombStatus] = 1
+                            # revealedSquares += 1
+                            # mark it as processed
+                            playingField[r][c + 1][squareProcessed] = 1
+                    except:
+                        pass
+
+                    # try bottom left
+                    try:
+                        if (
+                            playingField[r + 1][c - 1][surroundingBombs] == 0
+                            and c - 1 >= 0
+                            and playingField[r + 1][c - 1][squareProcessed] != 1
+                        ):
+                            playingField[r + 1][c - 1][bombStatus] = 1
+                            # revealedSquares += 1
+                            change = True
+                        elif playingField[r + 1][c - 1][bombExists] == 0 and c - 1 >= 0:
+                            # reveal it
+                            playingField[r + 1][c - 1][bombStatus] = 1
+                            # revealedSquares += 1
+                            # mark it as processed
+                            playingField[r + 1][c - 1][squareProcessed] = 1
+                    except:
+                        pass
+
+                    # try bottom
+                    try:
+                        if (
+                            playingField[r + 1][c][surroundingBombs] == 0
+                            and playingField[r + 1][c][squareProcessed] != 1
+                        ):
+                            playingField[r + 1][c][bombStatus] = 1
+                            # revealedSquares += 1
+                            change = True
+                        elif playingField[r + 1][c][bombExists] == 0:
+                            # reveal it
+                            playingField[r + 1][c][bombStatus] = 1
+                            # revealedSquares += 1
+                            # mark it as processed
+                            playingField[r + 1][c][squareProcessed] = 1
+                    except:
+                        pass
+
+                    # try bottom right
+                    try:
+                        if (
+                            playingField[r + 1][c + 1][surroundingBombs] == 0
+                            and playingField[r + 1][c + 1][squareProcessed] != 1
+                        ):
+                            playingField[r + 1][c + 1][bombStatus] = 1
+                            # revealedSquares += 1
+                            change = True
+                        elif playingField[r + 1][c + 1][bombExists] == 0:
+                            # reveal it
+                            playingField[r + 1][c + 1][bombStatus] = 1
+                            # revealedSquares += 1
+                            # mark it as processed
+                            playingField[r + 1][c + 1][squareProcessed] = 1
                     except:
                         pass
 
 
-
-                    #try bottom left
-                    try:
-                        if playingField[r+1][c-1][10] == 0 and c-1 >= 0 and playingField[r+1][c-1][11] != 1:
-                            playingField[r+1][c-1][9] = 1
-                            #revealedSquares += 1
-                            change = True
-                        elif playingField[r+1][c-1][0] == 0 and c-1 >= 0:
-                            #reveal it
-                            playingField[r+1][c-1][9] = 1
-                            #revealedSquares += 1
-                            #mark it as processed
-                            playingField[r+1][c-1][11] = 1
-                    except:
-                        pass
-
-                    #try bottom
-                    try:
-                        if playingField[r+1][c][10] == 0 and playingField[r+1][c][11] != 1:
-                            playingField[r+1][c][9] = 1
-                            #revealedSquares += 1
-                            change = True
-                        elif playingField[r+1][c][0] == 0:
-                            #reveal it
-                            playingField[r+1][c][9] = 1
-                            #revealedSquares += 1
-                            #mark it as processed
-                            playingField[r+1][c][11] = 1
-                    except:
-                        pass
-
-                    #try bottom right
-                    try:
-                        if playingField[r+1][c+1][10] == 0 and playingField[r+1][c+1][11] != 1:
-                            playingField[r+1][c+1][9] = 1
-                            #revealedSquares += 1
-                            change = True
-                        elif playingField[r+1][c+1][0] == 0:
-                            #reveal it
-                            playingField[r+1][c+1][9] = 1
-                            #revealedSquares += 1
-                            #mark it as processed
-                            playingField[r+1][c+1][11] = 1
-                    except:
-                        pass
-            
-    
-   
-
-
-
-
-
-
-#columns = input("Columns? ")
-#rows = input("Rows? ")
-
+# execution begins here
 columns = 10
 rows = 10
 
 playingField = []
 
-# the square can be changed to a class or dictionary in the future.  The list items below hold the
-# corresponding data
-# square = 0 = bomb (0 = safe, 1 = bomb), 1= top left, 2= top middle, 3 = top right, 4 = middle left,
-#          5 = middle right, 6 = bottom left, 7 = bottom middle, 8 = bottom right,
-#          9 = status (0 = unrevealed, 1 = revealed), 10 = number of bombs surrounding spot, 11=clear processed
-square = [0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+# The square is essentially like an object to represent each square on the field.  Each of the four entries in the list corresponds, in order, to whether the bommb
+# exists, whether the square has been revealed, how many bombs there are, and whether the square was processed for the automatic cascade function that will reveal
+# all the squares around an empty square (and also continue this each time a new zero square is encountered during that reveal cycle)
+square = [0, 0, 0, 0]
 mineRow = []
 
+# keys for square
+bombExists = 0
+bombStatus = 1
+surroundingBombs = 2
+squareProcessed = 3
+
+
+# Python doesn't actually duplicate lists, so I'm doing a deep copy, which creates a real copy of the list instead of passing its address.  If you don't
+# do a deepcopy, any changes to one list will affect all copies of the list.  We want the lists to be independent.  The first loop creates a single
+# mine field lane.  The second one duplicates the empty lane to create the required number of rows.
 for i in range(columns):
     mineRow.append(cp.deepcopy(square))
-    
 for i in range(rows):
     playingField.append(cp.deepcopy(mineRow))
 
@@ -231,209 +257,253 @@ for i in range(rows):
 # how many mines there are; can be a user toggle option in the future
 bombCount = 10
 totalBombs = bombCount
-#the generator below creates bombs, making sure to not duplicate them
+# the generator below creates bombs, making sure to not duplicate them
 while bombCount > 0:
-    bombRow = random.randint(0,rows-1)
-    bombColumn = random.randint(0,columns-1)
-    
-    if playingField[bombRow][bombColumn][0] == 1:
-        #print("already bombed")
+    bombRow = random.randint(0, rows - 1)
+    bombColumn = random.randint(0, columns - 1)
+
+    # if there's a bomb here already, try a new location
+    if playingField[bombRow][bombColumn][bombExists] == 1:
         continue
 
-    elif playingField[bombRow][bombColumn][0] == 0:
-        #print("laying mine")
+    # if there isn't a bomb here, go ahead and drop one
+    elif playingField[bombRow][bombColumn][bombExists] == 0:
         bombCount -= 1
-        playingField[bombRow][bombColumn][0] = 1
+        playingField[bombRow][bombColumn][bombExists] = 1
         continue
-    
+    # this shouldn't ever show, but just to be safe in case it does happen, we'll exit the game instead of letting it loop forever
     else:
-        print("dire error!")
+        print("dire error!  This should never show.")
         quit
 
 
+# determines how many bombs surround a location and appends it to the respective square entry
 for r in range(rows):
-    
+
     for c in range(columns):
+
         surrBombs = 0
-        if playingField[r][c][0] == 1:
-            #print("You're standing on a bomb.")
+
+        # if there's a bomb on the current location, then we know not to reveal the location, nor do we put a number here so we're just going to skip it
+        if playingField[r][c][bombExists] == 1:
             continue
-        #print(f"searching for bombs around ({r},{c})")
-        #try top left
+
+        # try top left
         try:
-            if playingField[r-1][c-1][0] == 1 and r-1 >= 0 and c-1 >= 0:
-                #print("I found a bomb top left")
-                surrBombs += 1
-        except:
-            surrBombs = surrBombs
-            
-        #try top middle:
-        try:
-            if playingField[r-1][c][0] == 1 and r-1>=0:
-                #print("I found a bomb above")
-                surrBombs += 1
-        except:
-            surrBombs = surrBombs
-            
-        #try top right
-        try:
-            if playingField[r-1][c+1][0] == 1 and r-1 >=0:
-                #print("I found a bomb top right")
+            if (
+                playingField[r - 1][c - 1][bombExists] == 1
+                and r - 1 >= 0
+                and c - 1 >= 0
+            ):
                 surrBombs += 1
         except:
             surrBombs = surrBombs
 
-        #try left
+        # try top middle:
         try:
-            if playingField[r][c-1][0] == 1 and c-1 >= 0:
-                #print("I found a bomb left")
+            if playingField[r - 1][c][bombExists] == 1 and r - 1 >= 0:
                 surrBombs += 1
         except:
             surrBombs = surrBombs
 
-        #try right
+        # try top right
         try:
-            if playingField[r][c+1][0] == 1:
-                #print("I found a bomb right")
+            if playingField[r - 1][c + 1][bombExists] == 1 and r - 1 >= 0:
                 surrBombs += 1
         except:
             surrBombs = surrBombs
 
-
-
-        #try bottom left
+        # try left
         try:
-            if playingField[r+1][c-1][0] == 1 and c-1 >= 0:
-                #print("I found a bomb bottom left")
+            if playingField[r][c - 1][bombExists] == 1 and c - 1 >= 0:
                 surrBombs += 1
         except:
             surrBombs = surrBombs
 
-        #try bottom
+        # try right
         try:
-            if playingField[r+1][c][0] == 1:
-                #print("I found a bomb bottom")
+            if playingField[r][c + 1][bombExists] == 1:
                 surrBombs += 1
         except:
             surrBombs = surrBombs
 
-        #try bottom right
+        # try bottom left
         try:
-            if playingField[r+1][c+1][0] == 1:
-                #print("I found a bomb bottom right")
+            if playingField[r + 1][c - 1][bombExists] == 1 and c - 1 >= 0:
                 surrBombs += 1
         except:
             surrBombs = surrBombs
-            
-        #print(f"I found {surrBombs} bombs")
-        playingField[r][c][10]=surrBombs
+
+        # try bottom
+        try:
+            if playingField[r + 1][c][bombExists] == 1:
+                surrBombs += 1
+        except:
+            surrBombs = surrBombs
+
+        # try bottom right
+        try:
+            if playingField[r + 1][c + 1][bombExists] == 1:
+                surrBombs += 1
+        except:
+            surrBombs = surrBombs
+        playingField[r][c][surroundingBombs] = surrBombs
 
 
-
-
-
+# assume the player isn't dead
 dead = False
+
+# while the player hasn't died or won
 while True:
+    # clear the screen
     clear()
+    # assume no squares were revealed yet (there's a function that prefers this value stays at zero since it needs to recheck every turn)
     revealedSquares = 0
+
+    # if you died
     if dead == True:
         showBombMap(playingField)
         input("Hit enter to quit")
         break
 
-    
-
-
-
-
-    
-
-    
+    # spacer is used to align the playing field display
     spacer = "  "
     print("  ", end="")
-    for i in range (len(playingField[0])):
-        print(f"{spacer}{i+1:2}",end="")
+    for i in range(len(playingField[0])):
+        print(f"{spacer}{i+1:2}", end="")
     print("")
+
+    # bombflag is the symbol we're using to show flag; it can be changed to whatever you want to use
     bombFlag = " B"
+    # left index used to label the rows on the playing field display
     leftIndex = 1
-    firstTime = True
 
-
+    # unrevealed string is what you want unknown squares to look like
     unrevealedString = " ?"
-    
+
+    # print the playing field
     for r in range(rows):
-        
-        print(f"{leftIndex:2}:",end="")
-        leftIndex+=1
-        
+
+        print(f"{leftIndex:2}:", end="")
+        leftIndex += 1
+
         for c in range(columns):
-            
-            if playingField[r][c][9] == 1:
-                revealedSquares+=1
-                #print(f"revealedSquares is {revealedSquares}")
-                print(f" {playingField[r][c][10]:2} ",end="")
+            # if the location has been revealed, show it.  Overrides bomb flag
+            if playingField[r][c][bombStatus] == 1:
+                revealedSquares += 1
+                print(f" {playingField[r][c][surroundingBombs]:2} ", end="")
                 continue
             else:
-                if playingField[r][c][12]==1:
-                    print(f" {bombFlag:2} ",end="")
+                # if you put a flag down and it hasn't been revealed, show a flag
+                if playingField[r][c][squareProcessed] == 1:
+                    print(f" {bombFlag:2} ", end="")
+                # if there's no flag, then show the unrevealed square character
                 else:
-                    print(f" {unrevealedString:2} ",end="")
-        
+                    print(f" {unrevealedString:2} ", end="")
+
         print("")
     print("")
 
-    print(f"Uncovered squares: {revealedSquares}")
-    print(f"Total spaces needing to be uncovered: {len(playingField)*len(playingField[0])-totalBombs}")
-    print(f"Bombs: {totalBombs}")
+    # reset the "attempting to put a flag down" /"attempting to remove flag" variable
+    flagAttempt = False
+    flagRemoveAttempt = False
 
-
-    if revealedSquares == len(playingField)*len(playingField[0])-totalBombs:
+    # if you win, good job
+    if revealedSquares == len(playingField) * len(playingField[0]) - totalBombs:
         print("")
         print("You win.  Good job.")
         showBombMap(playingField)
         input("Hit enter to quit")
         break
 
-    flagAttempt = False
-    flagRemoveAttempt = False
-    getInput = input("""Type in your location doing row then column. For example, you can type 3 4.
-Type b after the location if you want to put a flag as a possible bomb location, for example 3 4 b
-Bomb flags can be removed by typing the location of a bomb flag and typing c after it.""")
+    # get the user input; main interactive part of the game
+    getInput = input("Enter your row and column.  Type ? for more detailed help.\n>> ")
 
-    
+    # if the user asks for help, explain the game
+    if getInput == "?":
+        print(
+            """Enter a row followed by a column, then hit enter to set up a mine detector in that location.
+              For example, 3 4 will set up a detector on the third row from the top, fourth column from the left.
+              If there is a mine on that spot, you will instantly explode.  If there is no mine there, you will
+              be told how many mines touch that square in any 8 of the surrounding spots touching that box. For
+              example, revealing an 8 means there's a bomb on all 8 surrounding squares.  A 3 would mean there's
+              three mines in total.
+
+              You also have the option to place down lightweight flags that help you keep track of where you
+              think a mine might be.  These flags serve only as a visual tool for yourself; they have no effect
+              on anything else (and will automatically be removed if the game determines that the spot was supposed
+              to be revealed.  You can add a flag by adding the letter b after your coordinates to designate you
+              want to place a bomb flag there.  For example, to set a bomb flag on the top left, just type 1 1 b
+              and then hit enter.  To remove a flag that you placed down, type the location and then follow it with
+              an c to show you want to remove it.  For example, 1 1 c
+
+              Finally, you can type the word STATS and then hit enter to see how many bombs there are, how many spaces
+              you've safely uncovered, and how many more spaces you need to uncover to win."""
+        )
+        input("Hit enter to continue")
+        clear()
+        continue
+
+    # show the stats if they type STATS or stats
+    if getInput == "STATS" or getInput == "stats":
+        print(f"Uncovered squares: {revealedSquares}")
+        print(
+            f"Remaining squares to be uncovered: {len(playingField)*len(playingField[0])-totalBombs-revealedSquares}"
+        )
+        print(f"Bombs: {totalBombs}")
+        input("Hit enter to continue")
+        continue
+
+    # attempt to read the player's input
     try:
+
+        # attempt to save the input as a row and column
         myList = getInput.split(" ")
-        r = int(myList[0])-1
-        c = int(myList[1])-1
+
+        # converts the string to a number that is one less than what they typed.  This makes it to where they don't have to deal with
+        # using 0 for row 1 and makes it more user friendly.  The rest of the program can be written in "programmer" language without
+        # any hassle.
+        r = int(myList[0]) - 1
+        c = int(myList[1]) - 1
         try:
+            # see if they attempted to give a third argument
             b = myList[2]
+            # set flags for "bomb flag" if they typed b or B; same corresponding logic for c below
             if b == "b" or b == "B":
                 flagAttempt = True
+                # the line below is necessary to avoid keeping the flag variable in emory for all future attempts
+                # if you don't have this here, it'll store the b in the list and will only place down flags instead
+                # of attempting to reveal the square
                 myList[2] = False
             elif b == "c" or b == "C":
                 flagRemoveAttempt = True
                 myList[2] = False
+            # catch all for a third value not being b or c
             else:
                 print("Your third value must be either b for bomb or c for clear")
                 input("Hit enter to continue")
                 continue
+        # if they didn't give a third value, that's fine.  It's not an actual error
         except:
             pass
+    # if you didn't feed two or three arguments, then that's bad.  Try again
     except:
         print("bad input")
         input("Press enter to continue")
         continue
-
-    if r < 0 or r > rows-1 or c < 0 or c > columns -1:
+    # you can't have values that don't fit within the number or rows or columns
+    if r < 0 or r > rows - 1 or c < 0 or c > columns - 1:
         print("Out of bounds")
         continue
 
     if flagAttempt == True:
-        #if you haven't revealed it yet
-        if playingField[r][c][9] != 1:
-            #place a bomb flag to note there may be a bomb
-            playingField[r][c][12] = 1
-            print("Placed a flag down.  Marked potential bomb with a B.  Remove the flag by typing the location followed by r")
+        # if you haven't revealed it yet
+        if playingField[r][c][bombStatus] != 1:
+            # place a bomb flag to note there may be a bomb
+            playingField[r][c][squareProcessed] = 1
+            print(
+                "Placed a flag down.  Marked potential bomb with a B.  You may remove the flag by typing the location followed by c"
+            )
             input("Hit enter to continue")
             continue
         else:
@@ -441,9 +511,9 @@ Bomb flags can be removed by typing the location of a bomb flag and typing c aft
             input("Hit enter to continue")
             continue
     if flagRemoveAttempt == True:
-        if playingField[r][c][12] == 1:
-            #remove bomb flag
-            playingField[r][c][12] = 0
+        if playingField[r][c][squareProcessed] == 1:
+            # remove bomb flag
+            playingField[r][c][squareProcessed] = 0
             print("Removed the bomb marker")
             input("Hit enter to continue")
             continue
@@ -451,19 +521,18 @@ Bomb flags can be removed by typing the location of a bomb flag and typing c aft
             print("There's no flag there.")
             input("Hit enter to continue")
             continue
-    if playingField[r][c][0] == 1:
+    if playingField[r][c][bombExists] == 1:
         print("You dead!")
         input("Press enter to continue")
         dead = True
+    # kind of a pointless message, but there might be a confused person that keeps trying to reveal a spot for whatever reason. Can also act as a
+    # debug message in a cinch in case a spot says it's been revealed, but hasn't (luckily this hasn't happened in testing yet)
     else:
-        if playingField[r][c][9]==1:
+        if playingField[r][c][bombStatus] == 1:
             print("You already revealed this spot.")
             input("Press enter to continue")
             continue
         else:
-            playingField[r][c][9]=1
+            playingField[r][c][bombStatus] = 1
 
     revealer(playingField)
-
-
-    
