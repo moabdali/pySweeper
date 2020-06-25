@@ -1,6 +1,8 @@
 # pySweeper
  minesweeper clone for practice
 
+v0.8:
+	Mostly GUI based.  Shows win/lose screen properly.  Fixed the diagonal reveal error that would cascade incorrectly (revealing more info than should be revealed).  Added better graphics to make the game look prettier. Needs to properly reset after the game is won/lost (arv errors).
 
 v0.7:
 	Hybrid GUI and text based (Can be played without using any text inputs, but needs to have error messages and such displayed via gui instead of console.  Also need to display the win/lose map via GUI.  Fix some minor errors with showing "flag removed!" for cells that don't have a flag.  Also a potential error with auto revealing diagonal squares - this shouldn't really happen I think - may need to make it to where you only search for 0 cascades going up down left right and no diagonals).
