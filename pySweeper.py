@@ -1,3 +1,4 @@
+import PySimpleGUI as sg
 import random
 import copy as cp
 import string
@@ -224,6 +225,15 @@ def revealer(playingField):
                     except:
                         pass
 
+def imageAddress(number,status):
+    if number == 0 and status == "revealed":
+        return ".\\tileImages\\safe.png"
+    elif number >0 and number <9 and status == "revealed":
+        return f".\\tileImages\\{number}.png"
+    elif status == "unrevealed":
+        return f".\\tileImages\\unrevealed.png"
+
+
 
 # execution begins here
 columns = 10
@@ -348,6 +358,15 @@ for r in range(rows):
         except:
             surrBombs = surrBombs
         playingField[r][c][surroundingBombs] = surrBombs
+        
+# create the window
+
+image = ".\\tileImages\\blank.png"
+layout = [ [sg.T("pySweeper!",font = "Calibri 30")] ]
+#layout += [ [sg.Checkbox('Flag Mode',key = 'flagMode', default=False)]]
+layout += [ [sg.Radio("Normal Mode","flagMode",default = True)],[sg.Radio("Flag Mode","flagMode")],[sg.Radio("Remove Flag Mode","flagMode")]]
+layout += [ [sg.Button( image_filename=image,key = (i,j),pad=(1,1),border_width=2,size=(4,2),) for j in range (rows)] for i in range (columns) ]
+playBoard = sg.Window("Connect X",layout,keep_on_top=True).Finalize()
 
 
 # assume the player isn't dead
@@ -355,6 +374,8 @@ dead = False
 
 # while the player hasn't died or won
 while True:
+    
+    playBoard.refresh()
     # clear the screen
     clear()
     # assume no squares were revealed yet (there's a function that prefers this value stays at zero since it needs to recheck every turn)
@@ -372,7 +393,9 @@ while True:
     for i in range(len(playingField[0])):
         print(f"{spacer}{i+1:2}", end="")
     print("")
-
+    
+    #show window
+    playBoard.refresh()
     # bombflag is the symbol we're using to show flag; it can be changed to whatever you want to use
     bombFlag = " B"
     # left index used to label the rows on the playing field display
@@ -392,13 +415,21 @@ while True:
             if playingField[r][c][bombStatus] == 1:
                 revealedSquares += 1
                 print(f" {playingField[r][c][surroundingBombs]:2} ", end="")
+
+                #send number and safety
+                playBoard[r,c].Update(image_filename=imageAddress( playingField[r][c][surroundingBombs], "revealed"  ))
+                
                 continue
             else:
                 # if you put a flag down and it hasn't been revealed, show a flag
                 if playingField[r][c][squareProcessed] == 1:
+
+                    
+                    
                     print(f" {bombFlag:2} ", end="")
                 # if there's no flag, then show the unrevealed square character
                 else:
+                    playBoard[r,c].Update(image_filename=imageAddress( playingField[r][c][surroundingBombs], "unrevealed"  ))
                     print(f" {unrevealedString:2} ", end="")
 
         print("")
@@ -416,9 +447,30 @@ while True:
         input("Hit enter to quit")
         break
 
-    # get the user input; main interactive part of the game
-    getInput = input("Enter your row and column.  Type ? for more detailed help.\n>> ")
+    playBoard[0].update(True)
+    event, values = playBoard.read()
+    print(event, values)
 
+    
+    if values[1] == True:
+        flagAttempt = True
+        string = "b"
+        print("adding flag")
+    elif values[2] == True:
+        flagRemoveAttempt = True
+        string = "c"
+        print("removing Flag")
+    else:
+        string = None
+    r = event[0]+1
+    c = event[1]+1
+    print(r,c)
+    # get the user input; main interactive part of the game
+    #getInput = input("Enter your row and column.  Type ? for more detailed help.\n>> ")
+    if string == None:
+        getInput = (str(r)+" "+str(c))
+    else:
+        getInput = (str(r)+" "+str(c)+" "+string)
     # if the user asks for help, explain the game
     if getInput == "?":
         print(
@@ -464,8 +516,9 @@ while True:
     try:
 
         # attempt to save the input as a row and column
+        print(getInput)
         myList = getInput.split(" ")
-
+        print("HELLO")
         # converts the string to a number that is one less than what they typed.  This makes it to where they don't have to deal with
         # using 0 for row 1 and makes it more user friendly.  The rest of the program can be written in "programmer" language without
         # any hassle.
@@ -494,6 +547,7 @@ while True:
             pass
     # if you didn't feed two or three arguments, then that's bad.  Try again
     except:
+        print(getInput)
         print("bad input")
         input("Press enter to continue")
         continue
@@ -501,16 +555,17 @@ while True:
     if r < 0 or r > rows - 1 or c < 0 or c > columns - 1:
         print("Out of bounds")
         continue
-
+    
     if flagAttempt == True:
         # if you haven't revealed it yet
         if playingField[r][c][bombStatus] != 1:
             # place a bomb flag to note there may be a bomb
             playingField[r][c][squareProcessed] = 1
+            playBoard[r,c].update(image_filename=".\\tileImages\\flag.png")
             print(
                 "Placed a flag down.  Marked potential bomb with a B.  You may remove the flag by typing the location followed by c"
             )
-            input("Hit enter to continue")
+            
             continue
         else:
             print("You can't place a flag in a revealed location.")
@@ -521,12 +576,14 @@ while True:
             # remove bomb flag
             playingField[r][c][squareProcessed] = 0
             print("Removed the bomb marker")
-            input("Hit enter to continue")
+            
             continue
         else:
             print("There's no flag there.")
-            input("Hit enter to continue")
+            
             continue
+    
+        
     if playingField[r][c][bombExists] == 1:
         print("You dead!")
         input("Press enter to continue")
@@ -537,6 +594,9 @@ while True:
         if playingField[r][c][bombStatus] == 1:
             print("You already revealed this spot.")
             input("Press enter to continue")
+            continue
+        elif playingField[r][c][squareProcessed] == 1:
+            print("There's a flag there.  Remove it first.")
             continue
         else:
             playingField[r][c][bombStatus] = 1

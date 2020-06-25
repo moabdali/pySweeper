@@ -2,6 +2,9 @@
  minesweeper clone for practice
 
 
+v0.7:
+	Hybrid GUI and text based (Can be played without using any text inputs, but needs to have error messages and such displayed via gui instead of console.  Also need to display the win/lose map via GUI.  Fix some minor errors with showing "flag removed!" for cells that don't have a flag.  Also a potential error with auto revealing diagonal squares - this shouldn't really happen I think - may need to make it to where you only search for 0 cascades going up down left right and no diagonals).
+
 v0.6:
 	Better code readability, added comments.  Removed debug notes.  Better in game prompts (took away a lot of text and hid it behind a "type ? for more details" option.
 	Todo: 
